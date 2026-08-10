@@ -1,0 +1,9 @@
+# 项目级依赖：跑 tools/main.py（单进程 FastAPI）所需的最小集合。
+# 各工具模块专属依赖记录在 tools/{tool}/requirements.txt 里，
+# 便于未来该工具单独拆分部署时直接复制该文件，不用重新梳理依赖。
+
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+pandas>=2.2
+pyarrow>=16.0          # parquet 读写（workspace/{session_id}/xxx.parquet）
