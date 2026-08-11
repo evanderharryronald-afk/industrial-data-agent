@@ -6,10 +6,21 @@ FastAPI 主应用。
 其他工具代码完全不受影响。
 """
 
+import logging
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from tools.eda.router import router as eda_router
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 # 创建 FastAPI 应用
 app = FastAPI(
@@ -43,6 +54,13 @@ app.add_middleware(
 
 # 挂载各工具的 router
 app.include_router(eda_router)
+
+# 挂载静态文件服务（用于返回 workspace 下的图片等资源）
+workspace_path = Path(__file__).parent.parent / "workspace"
+workspace_path.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(workspace_path)), name="static")
+
+logger.info(f"Static files mounted at /static, serving from: {workspace_path}")
 
 # 简单的健康检查端点
 @app.get("/health")

@@ -21,6 +21,14 @@ def setup_sample_data():
     """创建示例数据和 workspace 目录。"""
     workspace_root = Path("workspace")
     workspace_root.mkdir(exist_ok=True)
+    
+    # 创建测试 conversation 目录
+    test_conv_dir = workspace_root / "test-conv-001"
+    test_conv_dir.mkdir(exist_ok=True)
+    
+    # 创建必要的子目录
+    for subdir in ["raw", "processed", "plots", "results"]:
+        (test_conv_dir / subdir).mkdir(exist_ok=True)
 
     # 创建示例 CSV 数据
     sample_data = {
@@ -32,14 +40,22 @@ def setup_sample_data():
     }
 
     df = pd.DataFrame(sample_data)
-    csv_path = workspace_root / "sample_data.csv"
+    
+    # 保存到 conversation 目录下的 raw 文件夹
+    csv_path = test_conv_dir / "raw" / "sample_data.csv"
     df.to_csv(csv_path, index=False)
     print(f"✅ 示例数据已创建：{csv_path}")
 
     # 创建示例 Parquet 数据
-    parquet_path = workspace_root / "sample_data.parquet"
+    parquet_path = test_conv_dir / "raw" / "sample_data.parquet"
     df.to_parquet(parquet_path, index=False)
     print(f"✅ 示例 Parquet 数据已创建：{parquet_path}")
+    
+    # 也在根目录保留一份（为了向后兼容早期测试）
+    csv_root = workspace_root / "sample_data.csv"
+    df.to_csv(csv_root, index=False)
+    parquet_root = workspace_root / "sample_data.parquet"
+    df.to_parquet(parquet_root, index=False)
 
     return csv_path, parquet_path
 
@@ -62,8 +78,8 @@ def test_eda_endpoint():
     # 测试 1：基础 EDA
     print("\n📌 测试 1：基础 EDA（无目标列）")
     request_payload = {
-        "session_id": "test-session-001",
-        "dataset_path": "sample_data.csv",
+        "conversation_id": "test-conv-001",
+        "dataset_path": "raw/sample_data.csv",
         "detail_level": "basic",
     }
     response = requests.post(
@@ -91,8 +107,8 @@ def test_eda_endpoint():
     # 测试 2：带目标列的 EDA
     print("\n📌 测试 2：EDA（指定目标列）")
     request_payload = {
-        "session_id": "test-session-001",
-        "dataset_path": "sample_data.csv",
+        "conversation_id": "test-conv-001",
+        "dataset_path": "raw/sample_data.csv",
         "target_column": "salary",
         "detail_level": "basic",
     }
@@ -117,8 +133,8 @@ def test_eda_endpoint():
     # 测试 3：Parquet 格式
     print("\n📌 测试 3：EDA（Parquet 格式）")
     request_payload = {
-        "session_id": "test-session-001",
-        "dataset_path": "sample_data.parquet",
+        "conversation_id": "test-conv-001",
+        "dataset_path": "raw/sample_data.parquet",
         "detail_level": "basic",
     }
     response = requests.post(
@@ -136,8 +152,8 @@ def test_eda_endpoint():
     # 测试 4：不存在的文件
     print("\n📌 测试 4：错误处理（不存在的文件）")
     request_payload = {
-        "session_id": "test-session-001",
-        "dataset_path": "nonexistent.csv",
+        "conversation_id": "test-conv-001",
+        "dataset_path": "raw/nonexistent.csv",
     }
     response = requests.post(
         "http://localhost:8000/api/v1/tools/eda/analyze",
@@ -197,16 +213,15 @@ def print_instructions():
 
 3. 在 Dify 中集成 EDA 工具：
    - 打开 Dify Web UI
-   - 创建新的 Agent
-   - 在 Tools 面板中选择 "Create Tool" -> "API based Tool"
-   - 导入 OpenAPI Schema（eda_openapi_schema.json）
-   - 测试 EDA 工具调用
+   - 创建新的 Workflow
+   - 在 Tools 中重新导入 OpenAPI Schema（更新后会用 conversation_id）
+   - 测试 EDA 工具调用，确保能接收 Dify 的 conversation_id
 
 4. 测试 Dify 集成：
-   在 Dify Agent 中输入：
-   "帮我分析一下 sample_data.csv 这份数据的分布情况"
-   
-   LLM 应该能正确调用 EDA 工具，并返回可读的结果。
+   在 Dify Workflow 中设置：
+   - Input: dataset_path (Text)
+   - Tool: EDA Analysis，绑定 dataset_path 参数
+   - 执行，验证 conversation_id 是否正确传递并隔离文件
     """)
 
 

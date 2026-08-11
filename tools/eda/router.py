@@ -5,6 +5,7 @@ EDA 工具的 HTTP 层。
 不含任何业务逻辑。
 """
 
+import logging
 from pathlib import Path
 
 from fastapi import APIRouter
@@ -12,6 +13,7 @@ from fastapi import APIRouter
 from tools.eda.schemas import EDARequest, EDAResponse
 from tools.eda.service import run_eda
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tools/eda", tags=["EDA"])
 
 
@@ -33,7 +35,7 @@ def analyze_dataset(request: EDARequest) -> EDAResponse:
     **输入示例**：
     ```json
     {
-      "session_id": "conv-123",
+      "conversation_id": "conv-123",
       "dataset_path": "raw_data.csv",
       "target_column": "sales",
       "detail_level": "basic"
@@ -46,36 +48,29 @@ def analyze_dataset(request: EDARequest) -> EDAResponse:
       "status": "success",
       "error_message": null,
       "dataset_shape": [1000, 15],
-      "columns": [
-        {
-          "name": "age",
-          "dtype": "int64",
-          "missing_count": 5,
-          "missing_rate": 0.005,
-          "unique_count": 50,
-          "sample_values": [25, 30, 35]
-        }
-      ],
-      "basic_stats": {
-        "age": {
-          "min": 18.0,
-          "max": 80.0,
-          "mean": 45.5,
-          "std": 15.2,
-          "median": 44.0
-        }
-      },
+      "columns": [...],
+      "basic_stats": {...},
       "memory_usage_mb": 0.12,
       "target_column_info": {...},
-      "warning_messages": ["⚠️ 列 'xxx' ..."],
+      "warning_messages": [...],
       "metadata": {}
     }
     ```
     """
+    logger.info(
+        f"EDA request received - conversation_id: {request.conversation_id}, dataset_path: {request.dataset_path}"
+    )
+    
     workspace_root = get_workspace_root()
-    return run_eda(
+    result = run_eda(
         dataset_path=request.dataset_path,
         workspace_root=workspace_root,
         target_column=request.target_column,
         detail_level=request.detail_level,
+        conversation_id=request.conversation_id,
     )
+    
+    logger.info(
+        f"EDA completed - conversation_id: {request.conversation_id}, status: {result.status}"
+    )
+    return result

@@ -91,22 +91,24 @@ def run_eda(
     workspace_root: str | Path = "workspace",
     target_column: str | None = None,
     detail_level: str = "basic",
+    conversation_id: str = "default",
 ) -> EDAResponse:
     """
     运行 EDA 分析。
 
     Args:
-        dataset_path: 数据集相对路径（基于 workspace/{session_id}/）
+        dataset_path: 数据集相对路径（基于 workspace/{conversation_id}/）
         workspace_root: workspace 根目录路径
         target_column: 可选的目标列名
         detail_level: "basic" 或 "detailed"
+        conversation_id: Dify 对话 ID，用于文件隔离
 
     Returns:
         EDAResponse 对象
     """
     try:
-        # 构造完整文件路径
-        full_path = Path(workspace_root) / dataset_path
+        # 构造完整文件路径（基于 conversation_id 隔离）
+        full_path = Path(workspace_root) / conversation_id / dataset_path
         if not full_path.exists():
             return EDAResponse(
                 status="error",

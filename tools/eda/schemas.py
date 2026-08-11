@@ -17,7 +17,7 @@ class EDARequest(ToolRequestBase):
 
     dataset_path: str = Field(
         description=(
-            "数据集文件的相对路径（基于 workspace/{session_id}/ 目录），"
+            "数据集文件的相对路径（基于 workspace/{conversation_id}/ 目录），"
             "支持格式：.csv、.parquet。"
             "通常来自数据导入工具、或前一步清洗/处理工具的返回值。"
         )
