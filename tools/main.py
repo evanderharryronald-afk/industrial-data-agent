@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from tools.eda.router import router as eda_router
+from tools.data_import.router import router as data_import_router
 
 # 配置日志
 logging.basicConfig(
@@ -54,6 +55,7 @@ app.add_middleware(
 
 # 挂载各工具的 router
 app.include_router(eda_router)
+app.include_router(data_import_router)
 
 # 挂载静态文件服务（用于返回 workspace 下的图片等资源）
 workspace_path = Path(__file__).parent.parent / "workspace"
