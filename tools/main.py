@@ -19,11 +19,15 @@ app = FastAPI(
     servers=[
         {
             "url": "http://host.docker.internal:8000",
-            "description": "Local development server (accessible from Docker)"
+            "description": "Docker 容器可访问的宿主机地址"
         },
         {
             "url": "http://localhost:8000",
             "description": "Local development server"
+        },
+        {
+            "url": "http://192.168.1.30:8000",
+            "description": "Local IP server"
         }
     ]
 )

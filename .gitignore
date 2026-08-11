@@ -1,0 +1,11 @@
+# 忽略所有日志文件
+*.xml
+*.iml
+# 忽略整个 build 文件夹
+build/
+
+# 忽略特定的临时文件
+temp.txt
+
+# 但不忽略 important.log 这个特殊的日志文件
+!important.log
